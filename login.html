@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+	<title>Possessed Ape - Login Intercept</title>
+	<meta content="Local login intercept for Possessed Ape identity proxy." name="description" />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap"
+		rel="stylesheet" />
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+		rel="stylesheet" />
+	<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+	<script>
+		tailwind.config = {
+			darkMode: "class",
+			theme: {
+				extend: {
+					colors: {
+						// Updated Palette based on user request & logo
+						primary: "#34e2c0", // Teal-leaning emerald green (flames)
+						secondary: "#1fceae", // Darker teal-emerald
+						accent: "#ff3d3d", // Red (eyes/runes)
+						"background-light": "#131626",
+						"background-dark": "#0a0b1e", // Deep Navy/Dark Blue from logo background
+						"surface-dark": "#131626", // Slightly lighter navy for cards
+						"surface-light": "#ffffff",
+						"input-bg": "#060713", // Very dark navy/black
+						"border-dim": "#1f2a36",
+						"success": "#34e2c0",
+					},
+					fontFamily: {
+						display: ["Space Grotesk", "sans-serif"],
+						mono: ["JetBrains Mono", "monospace"],
+					},
+					boxShadow: {
+						'glow-primary': '0 0 15px rgba(52, 226, 192, 0.2)',
+						'glow-primary-strong': '0 0 25px rgba(52, 226, 192, 0.5)',
+						'glow-accent': '0 0 15px rgba(255, 61, 61, 0.3)',
+						'input-focus': '0 0 0 2px rgba(52, 226, 192, 0.5)',
+						'input-error': '0 0 0 2px rgba(255, 61, 61, 0.5)',
+					},
+					animation: {
+						'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+						'scanline': 'scanline 8s linear infinite',
+						'flicker': 'flicker 3s linear infinite',
+					},
+					keyframes: {
+						flicker: {
+							'0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100%': { opacity: 1 },
+							'20%, 21.999%, 63%, 63.999%, 65%, 69.999%': { opacity: 0.8 },
+						}
+					}
+				},
+			},
+		};
+	</script>
+	<style>
+		body {
+			font-family: 'Space Grotesk', sans-serif;
+			overflow-x: hidden;
+			background-color: #0a0b1e;
+		}
+
+		.cyber-grid {
+			background-image:
+				linear-gradient(rgba(52, 226, 192, 0.03) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(52, 226, 192, 0.03) 1px, transparent 1px);
+			background-size: 40px 40px;
+			mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+		}
+
+		.scanline {
+			width: 100%;
+			height: 10px;
+			z-index: 10;
+			background: rgba(52, 226, 192, 0.08);
+			opacity: 0.3;
+			position: absolute;
+			top: 0;
+			animation: scanline 6s linear infinite;
+			pointer-events: none;
+			box-shadow: 0 0 20px rgba(52, 226, 192, 0.1);
+		}
+
+		.glitch-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+			pointer-events: none;
+			z-index: 5;
+			opacity: 0.3;
+		}
+
+		@keyframes scanline {
+			0% {
+				top: -10%;
+				opacity: 0;
+			}
+
+			5% {
+				opacity: 0.5;
+			}
+
+			95% {
+				opacity: 0.5;
+			}
+
+			100% {
+				top: 110%;
+				opacity: 0;
+			}
+		}
+
+		textarea::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		textarea::-webkit-scrollbar-track {
+			background: #060713;
+		}
+
+		textarea::-webkit-scrollbar-thumb {
+			background: #1f2a36;
+			border-radius: 4px;
+		}
+
+		textarea::-webkit-scrollbar-thumb:hover {
+			background: #34e2c0;
+		}
+
+		.dropdown-content {
+			display: none;
+		}
+
+		.group:focus-within .dropdown-content {
+			display: block;
+		}
+
+		details>summary {
+			list-style: none;
+		}
+
+		details>summary::-webkit-details-marker {
+			display: none;
+		}
+
+		.syntax-key {
+			color: #34e2c0;
+		}
+
+		.syntax-string {
+			color: #80ebd6;
+		}
+
+		.syntax-number {
+			color: #ff3d3d;
+		}
+
+		.syntax-boolean {
+			color: #1fceae;
+		}
+
+		.syntax-punct {
+			color: #6b7280;
+		}
+	</style>
+</head>
+
+<body
+	class="bg-background-dark text-gray-200 min-h-screen flex items-center justify-center relative overflow-x-hidden overflow-y-auto py-12 md:py-24">
+	<div class="glitch-overlay"></div>
+	<div class="fixed inset-0 cyber-grid pointer-events-none z-0"></div>
+	<div class="fixed inset-0 scanline pointer-events-none z-0"></div>
+	<div
+		class="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full mix-blend-screen filter blur-[120px] animate-pulse-slow pointer-events-none">
+	</div>
+	<div
+		class="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent/5 rounded-full mix-blend-screen filter blur-[100px] pointer-events-none">
+	</div>
+	<main class="relative z-10 w-full max-w-md p-6">
+		<div class="text-center mb-8">
+			<div
+				class="mx-auto w-32 h-32 rounded-full bg-background-dark border border-primary/30 flex items-center justify-center shadow-glow-primary overflow-hidden relative group mb-6 animate-flicker">
+				<img alt="Possessed Ape Logo" class="object-cover w-full h-full opacity-100"
+					src="/assets/possessed_ape.png" />
+				<div class="absolute inset-0 bg-primary/5 mix-blend-overlay"></div>
+			</div>
+			<h1 class="text-3xl font-bold tracking-tight font-display text-white mb-2">
+				Possessed<span class="text-primary">Ape</span>
+			</h1>
+			<p
+				class="text-gray-400 font-mono text-sm tracking-wide uppercase border-b border-gray-800 pb-4 inline-block">
+				Authentication Proxy Emulator
+			</p>
+		</div>
+		<div
+			class="bg-surface-dark border border-border-dim rounded-xl shadow-2xl backdrop-blur-sm relative overflow-visible">
+			<div
+				class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent opacity-70 shadow-glow-primary">
+			</div>
+			<div class="absolute top-4 right-4 z-20 flex items-center space-x-2">
+				<button id="save-profile-btn"
+					class="flex items-center justify-center w-8 h-8 rounded bg-input-bg border border-border-dim text-gray-400 hover:text-primary hover:border-primary transition-colors focus:outline-none"
+					title="Save current as profile" type="button">
+					<span class="material-symbols-outlined text-lg">save</span>
+				</button>
+				<div class="relative group" tabindex="0">
+					<button
+						class="flex items-center space-x-2 bg-input-bg border border-border-dim rounded px-3 py-1.5 text-xs font-mono text-gray-300 hover:text-white hover:border-gray-500 transition-colors focus:outline-none focus:border-primary">
+						<span class="material-symbols-outlined text-sm text-primary">account_circle</span>
+						<span>Profiles</span>
+						<span class="material-symbols-outlined text-sm">expand_more</span>
+					</button>
+					<div
+						class="dropdown-content absolute right-0 mt-2 w-48 bg-surface-dark border border-border-dim rounded-md shadow-xl overflow-hidden z-50 origin-top-right">
+						<div class="py-1" id="profiles-list">
+							<button
+								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
+								type="button">
+								<span
+									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">admin_panel_settings</span>
+								Admin User
+							</button>
+							<button
+								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
+								type="button">
+								<span
+									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">person</span>
+								Standard User
+							</button>
+							<button
+								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
+								type="button">
+								<span
+									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">no_accounts</span>
+								Guest
+							</button>
+						</div>
+						<div class="border-t border-border-dim py-1 bg-black/20">
+							<button id="manage-profiles-btn"
+								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-500 hover:bg-background-light hover:text-white transition-colors"
+								type="button">
+								<span class="material-symbols-outlined text-sm mr-2">settings</span>
+								Manage Profiles
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<form class="p-8 space-y-6 pt-12">
+				<div class="grid grid-cols-2 gap-4">
+					<div class="space-y-2">
+						<label class="block text-xs font-mono text-primary uppercase tracking-wider" for="user_id">User
+							ID</label>
+						<div class="relative">
+							<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+								<span class="material-symbols-outlined text-gray-500 text-lg">fingerprint</span>
+							</span>
+							<input
+								class="block w-full pl-10 pr-3 py-2.5 bg-input-bg border border-border-dim rounded-md text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-mono text-sm"
+								id="user_id" name="user_id" placeholder="1001" type="text" value="admin_root_01" />
+						</div>
+					</div>
+					<div class="space-y-2">
+						<label class="block text-xs font-mono text-gray-400 uppercase tracking-wider"
+							for="name">Name</label>
+						<div class="relative">
+							<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+								<span class="material-symbols-outlined text-gray-500 text-lg">badge</span>
+							</span>
+							<input
+								class="block w-full pl-10 pr-3 py-2.5 bg-input-bg border border-border-dim rounded-md text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-mono text-sm"
+								id="name" name="name" placeholder="John Doe" type="text" value="System Administrator" />
+						</div>
+					</div>
+				</div>
+				<div class="space-y-2">
+					<label class="block text-xs font-mono text-gray-400 uppercase tracking-wider" for="email">Email
+						Address</label>
+					<div class="relative">
+						<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+							<span class="material-symbols-outlined text-gray-500 text-lg">alternate_email</span>
+						</span>
+						<input
+							class="block w-full pl-10 pr-3 py-2.5 bg-input-bg border border-border-dim rounded-md text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-mono text-sm"
+							id="email" name="email" placeholder="developer@company.com" type="email"
+							value="admin@possessed-ape.local" />
+					</div>
+				</div>
+				<div class="space-y-2">
+					<div class="flex justify-between items-center">
+						<label class="block text-xs font-mono text-gray-400 uppercase tracking-wider" for="roles">Roles
+							/ Groups</label>
+						<span class="text-[10px] text-gray-600 font-mono">JSON or CSV</span>
+					</div>
+					<textarea
+						class="block w-full p-3 bg-input-bg border border-border-dim rounded-md text-primary font-mono text-sm placeholder-gray-700 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+						id="roles" name="roles" placeholder='["admin", "editor", "billing_read"]'
+						rows="3">["superuser", "admin", "billing_write", "audit_log_view"]</textarea>
+				</div>
+				<div class="pt-2">
+					<button
+						class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-background-dark bg-primary hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-gray-900 transition-all shadow-glow-primary hover:shadow-glow-primary-strong"
+						type="submit">
+						<span class="absolute left-0 inset-y-0 flex items-center pl-3">
+							<span
+								class="material-symbols-outlined group-hover:animate-pulse text-background-dark">lock_open</span>
+						</span>
+						ASSUME IDENTITY NOW
+					</button>
+				</div>
+				<details
+					class="group mt-4 border border-border-dim rounded-lg overflow-hidden transition-all duration-300">
+					<summary
+						class="flex items-center justify-between p-3 bg-black/20 cursor-pointer hover:bg-black/40 transition-colors select-none">
+						<div class="flex items-center space-x-2">
+							<span class="material-symbols-outlined text-primary text-sm">code</span>
+							<span
+								class="text-xs font-mono text-gray-400 uppercase tracking-wider group-open:text-primary transition-colors">JWT
+								Preview</span>
+						</div>
+						<span
+							class="material-symbols-outlined text-gray-500 transform group-open:rotate-180 transition-transform text-sm group-hover:text-accent">expand_more</span>
+					</summary>
+					<div class="relative bg-input-bg p-4 border-t border-border-dim">
+						<button
+							class="absolute top-2 right-2 p-1.5 text-gray-500 hover:text-accent bg-surface-dark border border-border-dim rounded hover:border-gray-500 transition-all"
+							title="Copy to Clipboard" type="button">
+							<span class="material-symbols-outlined text-xs">content_copy</span>
+						</button>
+						<pre class="font-mono text-xs overflow-x-auto leading-relaxed"><code class="language-json">
+<span class="text-gray-500">{</span>
+  <span class="syntax-key">"sub"</span><span class="syntax-punct">:</span> <span class="syntax-string">"admin_root_01"</span><span class="syntax-punct">,</span>
+  <span class="syntax-key">"email"</span><span class="syntax-punct">:</span> <span class="syntax-string">"admin@possessed-ape.local"</span><span class="syntax-punct">,</span>
+  <span class="syntax-key">"name"</span><span class="syntax-punct">:</span> <span class="syntax-string">"System Administrator"</span><span class="syntax-punct">,</span>
+  <span class="syntax-key">"roles"</span><span class="syntax-punct">:</span> [
+    <span class="syntax-string">"superuser"</span><span class="syntax-punct">,</span>
+    <span class="syntax-string">"admin"</span><span class="syntax-punct">,</span>
+    <span class="syntax-string">"billing_write"</span><span class="syntax-punct">,</span>
+    <span class="syntax-string">"audit_log_view"</span>
+  ]<span class="syntax-punct">,</span>
+  <span class="syntax-key">"iss"</span><span class="syntax-punct">:</span> <span class="syntax-string">"https://auth.possessed-ape.dev"</span><span class="syntax-punct">,</span>
+  <span class="syntax-key">"exp"</span><span class="syntax-punct">:</span> <span class="syntax-number">1739218405</span><span class="syntax-punct">,</span>
+  <span class="syntax-key">"iat"</span><span class="syntax-punct">:</span> <span class="syntax-number">1739214805</span>
+<span class="text-gray-500">}</span></code></pre>
+					</div>
+				</details>
+			</form>
+			<div class="bg-surface-dark px-8 py-3 border-t border-border-dim flex justify-between items-center">
+				<span class="text-[10px] text-gray-500 font-mono">Preset loaded: <span id="preset-label"
+						class="text-primary">Admin User</span></span>
+				<div class="flex space-x-2">
+					<span class="text-[10px] text-gray-600 font-mono">v1.2.0-beta</span>
+				</div>
+			</div>
+		</div>
+		<div class="mt-8 text-center space-y-2">
+			<div class="inline-flex items-center space-x-2">
+				<span class="flex h-2 w-2 relative">
+					<span
+						class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+					<span class="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+				</span>
+			</div>
+			<p class="text-xs text-gray-600">
+				Local Development Mode Only
+			</p>
+		</div>
+	</main>
+
+	<!-- Save Profile Dialog -->
+	<div id="save-profile-overlay"
+		class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+		<div class="bg-surface-dark border border-border-dim rounded-xl shadow-2xl w-80 overflow-hidden">
+			<div class="px-5 pt-5 pb-4">
+				<h3 class="text-sm font-bold text-white font-display mb-1">Save Profile</h3>
+				<p class="text-[10px] text-gray-500 font-mono mb-4">Save current form values as a reusable profile</p>
+				<label class="block text-xs font-mono text-gray-400 uppercase tracking-wider mb-2"
+					for="save-profile-name">Profile Name</label>
+				<input id="save-profile-name"
+					class="block w-full px-3 py-2.5 bg-input-bg border border-border-dim rounded-md text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-mono text-sm"
+					placeholder="My Custom Profile" type="text" />
+				<p id="save-profile-error" class="hidden text-[10px] text-accent font-mono mt-2"></p>
+			</div>
+			<div class="flex border-t border-border-dim">
+				<button id="save-profile-cancel"
+					class="flex-1 px-4 py-2.5 text-xs font-mono text-gray-400 hover:text-white hover:bg-background-light transition-colors"
+					type="button">Cancel</button>
+				<button id="save-profile-confirm"
+					class="flex-1 px-4 py-2.5 text-xs font-mono text-primary hover:bg-primary/10 border-l border-border-dim transition-colors font-bold"
+					type="button">Save</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Manage Profiles Panel -->
+	<div id="manage-profiles-overlay"
+		class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+		<div
+			class="bg-surface-dark border border-border-dim rounded-xl shadow-2xl w-80 max-h-[60vh] flex flex-col overflow-hidden">
+			<div class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border-dim">
+				<div>
+					<h3 class="text-sm font-bold text-white font-display">Manage Profiles</h3>
+					<p class="text-[10px] text-gray-500 font-mono mt-0.5">Custom profiles — defaults cannot be removed
+					</p>
+				</div>
+				<button id="manage-profiles-close" class="p-1 text-gray-500 hover:text-white transition-colors"
+					type="button">
+					<span class="material-symbols-outlined text-lg">close</span>
+				</button>
+			</div>
+			<div id="manage-profiles-list" class="overflow-y-auto flex-1"></div>
+		</div>
+	</div>
+
+	<script>
+		document.querySelector('form').addEventListener('submit', function (e) {
+			e.preventDefault();
+			const email = document.getElementById('email').value;
+
+			const btn = e.target.querySelector('button');
+			btn.textContent = 'AUTHENTICATING...';
+			btn.style.opacity = '0.8';
+
+			// Simulate slight delay for dramatic effect
+			setTimeout(() => {
+				const d = new Date();
+				d.setTime(d.getTime() + (24 * 60 * 60 * 1000));
+				document.cookie = "mock_iap_email=" + email + ";expires=" + d.toUTCString() + ";path=/";
+				globalThis.location.href = "/";
+			}, 400);
+		});
+	</script>
+
+	<script>
+		// Profile System
+		(function () {
+			const STORAGE_KEY = 'possessed_ape_profiles';
+			const LAST_PROFILE_KEY = 'possessed_ape_last_profile';
+
+			const DEFAULT_PROFILES = [
+				{
+					id: 'admin', name: 'Admin User', icon: 'admin_panel_settings', isDefault: true,
+					data: { user_id: 'admin_root_01', name: 'System Administrator', email: 'admin@possessed-ape.local', roles: '["superuser", "admin", "billing_write", "audit_log_view"]' }
+				},
+				{
+					id: 'standard', name: 'Standard User', icon: 'person', isDefault: true,
+					data: { user_id: 'user_std_01', name: 'Jane Developer', email: 'jane@possessed-ape.local', roles: '["editor", "viewer"]' }
+				},
+				{
+					id: 'guest', name: 'Guest', icon: 'no_accounts', isDefault: true,
+					data: { user_id: 'guest_01', name: 'Guest User', email: 'guest@possessed-ape.local', roles: '["viewer"]' }
+				}
+			];
+
+			function getCustomProfiles() {
+				try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+				catch { return []; }
+			}
+
+			function saveCustomProfiles(profiles) {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+			}
+
+			function getAllProfiles() {
+				return [...DEFAULT_PROFILES, ...getCustomProfiles()];
+			}
+
+			function loadProfile(profile) {
+				document.getElementById('user_id').value = profile.data.user_id;
+				document.getElementById('name').value = profile.data.name;
+				document.getElementById('email').value = profile.data.email;
+				document.getElementById('roles').value = profile.data.roles;
+				document.getElementById('preset-label').textContent = profile.name;
+				localStorage.setItem(LAST_PROFILE_KEY, profile.id);
+				document.activeElement.blur();
+			}
+
+			function captureFormData() {
+				return {
+					user_id: document.getElementById('user_id').value,
+					name: document.getElementById('name').value,
+					email: document.getElementById('email').value,
+					roles: document.getElementById('roles').value
+				};
+			}
+
+			function renderProfilesDropdown() {
+				const container = document.getElementById('profiles-list');
+				const profiles = getAllProfiles();
+				container.innerHTML = profiles.map(function (p) {
+					return '<button class="profile-btn flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item" data-profile-id="' + p.id + '" type="button">'
+						+ '<span class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">' + (p.icon || 'person') + '</span>'
+						+ p.name
+						+ (p.isDefault ? '' : '<span class="ml-auto text-[10px] text-gray-600 font-mono">custom</span>')
+						+ '</button>';
+				}).join('');
+
+				container.querySelectorAll('.profile-btn').forEach(function (btn) {
+					btn.addEventListener('click', function () {
+						var profile = getAllProfiles().find(function (p) { return p.id === btn.dataset.profileId; });
+						if (profile) loadProfile(profile);
+					});
+				});
+			}
+
+			// Save profile dialog
+			function showSaveDialog() {
+				var overlay = document.getElementById('save-profile-overlay');
+				var input = document.getElementById('save-profile-name');
+				overlay.classList.remove('hidden');
+				input.value = '';
+				document.getElementById('save-profile-error').classList.add('hidden');
+				setTimeout(function () { input.focus(); }, 50);
+			}
+
+			function hideSaveDialog() {
+				document.getElementById('save-profile-overlay').classList.add('hidden');
+				document.getElementById('save-profile-error').classList.add('hidden');
+			}
+
+			function saveProfile() {
+				var nameInput = document.getElementById('save-profile-name');
+				var errorEl = document.getElementById('save-profile-error');
+				var name = nameInput.value.trim();
+
+				if (!name) {
+					errorEl.textContent = 'Name is required';
+					errorEl.classList.remove('hidden');
+					return;
+				}
+
+				if (getAllProfiles().some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); })) {
+					errorEl.textContent = 'A profile with this name already exists';
+					errorEl.classList.remove('hidden');
+					return;
+				}
+
+				var customs = getCustomProfiles();
+				var newProfile = {
+					id: 'custom_' + Date.now(),
+					name: name,
+					icon: 'person_add',
+					isDefault: false,
+					data: captureFormData()
+				};
+				customs.push(newProfile);
+				saveCustomProfiles(customs);
+				renderProfilesDropdown();
+				loadProfile(newProfile);
+				hideSaveDialog();
+			}
+
+			// Manage profiles panel
+			function showManagePanel() {
+				document.getElementById('manage-profiles-overlay').classList.remove('hidden');
+				renderManageList();
+				document.activeElement.blur();
+			}
+
+			function hideManagePanel() {
+				document.getElementById('manage-profiles-overlay').classList.add('hidden');
+			}
+
+			function renderManageList() {
+				var container = document.getElementById('manage-profiles-list');
+				var customs = getCustomProfiles();
+
+				if (customs.length === 0) {
+					container.innerHTML = '<div class="text-center py-8">'
+						+ '<span class="material-symbols-outlined text-3xl text-gray-600 mb-2 block">folder_open</span>'
+						+ '<p class="text-xs text-gray-500 font-mono">No custom profiles yet</p>'
+						+ '<p class="text-[10px] text-gray-600 font-mono mt-1">Use the save button to create one</p>'
+						+ '</div>';
+					return;
+				}
+
+				container.innerHTML = customs.map(function (p) {
+					return '<div class="flex items-center justify-between px-4 py-3 border-b border-border-dim last:border-0 group">'
+						+ '<div class="flex items-center space-x-3">'
+						+ '<span class="material-symbols-outlined text-sm text-gray-500">' + (p.icon || 'person') + '</span>'
+						+ '<div>'
+						+ '<div class="text-xs text-gray-300 font-mono">' + p.name + '</div>'
+						+ '<div class="text-[10px] text-gray-600">' + p.data.email + '</div>'
+						+ '</div></div>'
+						+ '<button class="delete-profile-btn opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:text-accent hover:bg-accent/10 rounded transition-all" data-profile-id="' + p.id + '" type="button" title="Delete profile">'
+						+ '<span class="material-symbols-outlined text-sm">delete</span>'
+						+ '</button></div>';
+				}).join('');
+
+				container.querySelectorAll('.delete-profile-btn').forEach(function (btn) {
+					btn.addEventListener('click', function () {
+						deleteProfile(btn.dataset.profileId);
+					});
+				});
+			}
+
+			function deleteProfile(id) {
+				var customs = getCustomProfiles().filter(function (p) { return p.id !== id; });
+				saveCustomProfiles(customs);
+				renderManageList();
+				renderProfilesDropdown();
+				if (localStorage.getItem(LAST_PROFILE_KEY) === id) {
+					document.getElementById('preset-label').textContent = '\u2014';
+					localStorage.removeItem(LAST_PROFILE_KEY);
+				}
+			}
+
+			// Initialize
+			function init() {
+				renderProfilesDropdown();
+
+				document.getElementById('save-profile-btn').addEventListener('click', showSaveDialog);
+				document.getElementById('manage-profiles-btn').addEventListener('click', showManagePanel);
+				document.getElementById('save-profile-confirm').addEventListener('click', saveProfile);
+				document.getElementById('save-profile-cancel').addEventListener('click', hideSaveDialog);
+				document.getElementById('manage-profiles-close').addEventListener('click', hideManagePanel);
+
+				document.getElementById('save-profile-name').addEventListener('keydown', function (e) {
+					if (e.key === 'Enter') saveProfile();
+					if (e.key === 'Escape') hideSaveDialog();
+				});
+
+				document.getElementById('save-profile-overlay').addEventListener('click', function (e) {
+					if (e.target === e.currentTarget) hideSaveDialog();
+				});
+				document.getElementById('manage-profiles-overlay').addEventListener('click', function (e) {
+					if (e.target === e.currentTarget) hideManagePanel();
+				});
+
+				document.addEventListener('keydown', function (e) {
+					if (e.key === 'Escape') { hideSaveDialog(); hideManagePanel(); }
+				});
+
+				// Load last-used profile on startup
+				var lastId = localStorage.getItem(LAST_PROFILE_KEY);
+				if (lastId) {
+					var profile = getAllProfiles().find(function (p) { return p.id === lastId; });
+					if (profile) loadProfile(profile);
+				}
+			}
+
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', init);
+			} else {
+				init();
+			}
+		})();
+	</script>
+</body>
+
+</html>

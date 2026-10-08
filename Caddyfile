@@ -1,0 +1,45 @@
+http://:{$PORT:8080} {
+	handle /assets/possessed_ape.png {
+		uri strip_prefix /assets
+		file_server {
+			root /www/assets
+		}
+	}
+
+	handle /mock-login {
+		file_server {
+			root /www
+		}
+		rewrite * /login.html
+	}
+
+	handle {
+		@missing_cookie {
+			not header_regexp Cookie "mock_iap_email=([^;]+)"
+		}
+		redir @missing_cookie /mock-login
+
+		@has_cookie {
+			header_regexp cookie_match Cookie "mock_iap_email=([^;]+)"
+		}
+
+		handle /api/* {
+			reverse_proxy @has_cookie {$UPSTREAM_API_URL} {
+				header_up X-Goog-Authenticated-User-Email "accounts.google.com:{re.cookie_match.1}"
+			}
+		}
+
+		handle /feedback/* {
+			uri strip_prefix /feedback
+			reverse_proxy @has_cookie {$UPSTREAM_FEEDBACK_URL} {
+				header_up X-Goog-Authenticated-User-Email "accounts.google.com:{re.cookie_match.1}"
+			}
+		}
+
+		handle {
+			reverse_proxy @has_cookie {$UPSTREAM_WEB_URL} {
+				header_up X-Goog-Authenticated-User-Email "accounts.google.com:{re.cookie_match.1}"
+			}
+		}
+	}
+}

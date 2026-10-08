@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: possessed-ape
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: possessed-ape
+  template:
+    metadata:
+      labels:
+        app: possessed-ape
+    spec:
+      containers:
+        - name: possessed-ape
+          image: caddy:2.8.4-alpine
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PORT
+              value: "8080"
+            - name: UPSTREAM_WEB_URL
+              value: "http://aether-web:80"
+            - name: UPSTREAM_API_URL
+              value: "http://aether-backend:8080"
+            - name: UPSTREAM_FEEDBACK_URL
+              value: "http://aether-feedback:3001"
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: caddy-config
+              mountPath: /etc/caddy/Caddyfile
+              subPath: Caddyfile
+            - name: caddy-assets
+              mountPath: /www/login.html
+              subPath: login.html
+            - name: caddy-assets
+              mountPath: /www/assets/possessed_ape.png
+              subPath: possessed_ape.png
+      volumes:
+        - name: caddy-config
+          configMap:
+            name: possessed-ape-caddyfile
+        - name: caddy-assets
+          configMap:
+            name: possessed-ape-assets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: possessed-ape
+spec:
+  selector:
+    app: possessed-ape
+  ports:
+    - port: 8080
+      targetPort: 8080
