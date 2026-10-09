@@ -225,22 +225,29 @@
 								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
 								type="button">
 								<span
+									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">engineering</span>
+								Platform Engineer
+							</button>
+							<button
+								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
+								type="button">
+								<span
+									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">terminal</span>
+								Developer
+							</button>
+							<button
+								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
+								type="button">
+								<span
+									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">monitoring</span>
+								Operations (Info Only)
+							</button>
+							<button
+								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
+								type="button">
+								<span
 									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">admin_panel_settings</span>
 								Admin User
-							</button>
-							<button
-								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
-								type="button">
-								<span
-									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">person</span>
-								Standard User
-							</button>
-							<button
-								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
-								type="button">
-								<span
-									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">no_accounts</span>
-								Guest
 							</button>
 						</div>
 						<div class="border-t border-border-dim py-1 bg-black/20">
@@ -335,7 +342,7 @@
 							title="Copy to Clipboard" type="button">
 							<span class="material-symbols-outlined text-xs">content_copy</span>
 						</button>
-						<pre class="font-mono text-xs overflow-x-auto leading-relaxed"><code class="language-json">
+						<pre class="font-mono text-xs overflow-x-auto leading-relaxed"><code class="language-json" id="jwt-preview-code">
 <span class="text-gray-500">{</span>
   <span class="syntax-key">"sub"</span><span class="syntax-punct">:</span> <span class="syntax-string">"admin_root_01"</span><span class="syntax-punct">,</span>
   <span class="syntax-key">"email"</span><span class="syntax-punct">:</span> <span class="syntax-string">"admin@possessed-ape.local"</span><span class="syntax-punct">,</span>
@@ -447,16 +454,20 @@
 
 			const DEFAULT_PROFILES = [
 				{
+					id: 'platform_engineer', name: 'Platform Engineer', icon: 'engineering', isDefault: true,
+					data: { user_id: 'platform_eng_01', name: 'Elena Rostova', email: 'platform.engineer@aether.local', roles: '["Infrastructure Engineer", "platform_admin", "editor"]' }
+				},
+				{
+					id: 'developer', name: 'Developer', icon: 'terminal', isDefault: true,
+					data: { user_id: 'developer_01', name: 'Jane Miller', email: 'developer@aether.local', roles: '["User", "developer", "editor"]' }
+				},
+				{
+					id: 'operations', name: 'Operations (Info Only)', icon: 'monitoring', isDefault: true,
+					data: { user_id: 'ops_viewer_01', name: 'Sam Patel', email: 'ops.user@aether.local', roles: '["User", "operations_viewer", "auditor"]' }
+				},
+				{
 					id: 'admin', name: 'Admin User', icon: 'admin_panel_settings', isDefault: true,
-					data: { user_id: 'admin_root_01', name: 'System Administrator', email: 'admin@possessed-ape.local', roles: '["superuser", "admin", "billing_write", "audit_log_view"]' }
-				},
-				{
-					id: 'standard', name: 'Standard User', icon: 'person', isDefault: true,
-					data: { user_id: 'user_std_01', name: 'Jane Developer', email: 'jane@possessed-ape.local', roles: '["editor", "viewer"]' }
-				},
-				{
-					id: 'guest', name: 'Guest', icon: 'no_accounts', isDefault: true,
-					data: { user_id: 'guest_01', name: 'Guest User', email: 'guest@possessed-ape.local', roles: '["viewer"]' }
+					data: { user_id: 'admin_root_01', name: 'System Administrator', email: 'admin@aether.local', roles: '["Admin", "superuser", "billing_write", "audit_log_view"]' }
 				}
 			];
 
@@ -473,12 +484,27 @@
 				return [...DEFAULT_PROFILES, ...getCustomProfiles()];
 			}
 
+			function updateJwtPreview(data) {
+				const el = document.getElementById('jwt-preview-code');
+				if (!el) return;
+				el.innerHTML = '<span class="text-gray-500">{</span>\n'
+					+ '  <span class="syntax-key">"sub"</span><span class="syntax-punct">:</span> <span class="syntax-string">"' + (data.user_id || '') + '"</span><span class="syntax-punct">,</span>\n'
+					+ '  <span class="syntax-key">"email"</span><span class="syntax-punct">:</span> <span class="syntax-string">"' + (data.email || '') + '"</span><span class="syntax-punct">,</span>\n'
+					+ '  <span class="syntax-key">"name"</span><span class="syntax-punct">:</span> <span class="syntax-string">"' + (data.name || '') + '"</span><span class="syntax-punct">,</span>\n'
+					+ '  <span class="syntax-key">"roles"</span><span class="syntax-punct">:</span> <span class="syntax-string">' + (data.roles || '[]') + '</span><span class="syntax-punct">,</span>\n'
+					+ '  <span class="syntax-key">"iss"</span><span class="syntax-punct">:</span> <span class="syntax-string">"https://auth.possessed-ape.dev"</span><span class="syntax-punct">,</span>\n'
+					+ '  <span class="syntax-key">"exp"</span><span class="syntax-punct">:</span> <span class="syntax-number">1739218405</span><span class="syntax-punct">,</span>\n'
+					+ '  <span class="syntax-key">"iat"</span><span class="syntax-punct">:</span> <span class="syntax-number">1739214805</span>\n'
+					+ '<span class="text-gray-500">}</span>';
+			}
+
 			function loadProfile(profile) {
 				document.getElementById('user_id').value = profile.data.user_id;
 				document.getElementById('name').value = profile.data.name;
 				document.getElementById('email').value = profile.data.email;
 				document.getElementById('roles').value = profile.data.roles;
 				document.getElementById('preset-label').textContent = profile.name;
+				updateJwtPreview(profile.data);
 				localStorage.setItem(LAST_PROFILE_KEY, profile.id);
 				document.activeElement.blur();
 			}
