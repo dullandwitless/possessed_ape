@@ -1,5 +1,6 @@
 <div align="center">
   <img src="possessed_ape.png" alt="Possessed Ape Logo" width="200" style="border-radius: 50%; box-shadow: 0 0 25px rgba(52, 226, 192, 0.5);" />
+  
   # 🦍 PossessedApe
 
   <p><b>Authentication Proxy Emulator</b> — <i>Hack into your local dev environment without the friction.</i></p>
