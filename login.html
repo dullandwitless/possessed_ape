@@ -4,6 +4,7 @@
 <head>
 	<meta charset="utf-8" />
 	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+	<meta content="light dark" name="color-scheme" />
 	<title>Possessed Ape - Login Intercept</title>
 	<meta content="Local login intercept for Possessed Ape identity proxy." name="description" />
 	<link
@@ -59,6 +60,10 @@
 		};
 	</script>
 	<style>
+		:root {
+			color-scheme: light dark;
+		}
+
 		body {
 			font-family: 'Space Grotesk', sans-serif;
 			overflow-x: hidden;
@@ -139,7 +144,8 @@
 			display: none;
 		}
 
-		.group:focus-within .dropdown-content {
+		.group:focus-within .dropdown-content,
+		.dropdown-content:popover-open {
 			display: block;
 		}
 
@@ -189,7 +195,7 @@
 			<div
 				class="mx-auto w-32 h-32 rounded-full bg-background-dark border border-primary/30 flex items-center justify-center shadow-glow-primary overflow-hidden relative group mb-6 animate-flicker">
 				<img alt="Possessed Ape Logo" class="object-cover w-full h-full opacity-100"
-					src="/assets/possessed_ape.png" />
+					height="128" src="/assets/possessed_ape.png" width="128" />
 				<div class="absolute inset-0 bg-primary/5 mix-blend-overlay"></div>
 			</div>
 			<h1 class="text-3xl font-bold tracking-tight font-display text-white mb-2">
@@ -206,46 +212,63 @@
 				class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent opacity-70 shadow-glow-primary">
 			</div>
 			<div class="absolute top-4 right-4 z-20 flex items-center space-x-2">
-				<button id="save-profile-btn"
+				<button aria-label="Save current as profile" id="save-profile-btn"
 					class="flex items-center justify-center w-8 h-8 rounded bg-input-bg border border-border-dim text-gray-400 hover:text-primary hover:border-primary transition-colors focus:outline-none"
 					title="Save current as profile" type="button">
-					<span class="material-symbols-outlined text-lg">save</span>
+					<span aria-hidden="true" class="material-symbols-outlined text-lg">save</span>
 				</button>
-				<div class="relative group" tabindex="0">
+				<div class="relative group">
 					<button
+						aria-expanded="false"
+						aria-haspopup="menu"
+						command="toggle-popover"
+						commandfor="profiles-dropdown"
+						popovertarget="profiles-dropdown"
+						type="button"
 						class="flex items-center space-x-2 bg-input-bg border border-border-dim rounded px-3 py-1.5 text-xs font-mono text-gray-300 hover:text-white hover:border-gray-500 transition-colors focus:outline-none focus:border-primary">
-						<span class="material-symbols-outlined text-sm text-primary">account_circle</span>
+						<span aria-hidden="true" class="material-symbols-outlined text-sm text-primary">account_circle</span>
 						<span>Profiles</span>
-						<span class="material-symbols-outlined text-sm">expand_more</span>
+						<span aria-hidden="true" class="material-symbols-outlined text-sm">expand_more</span>
 					</button>
 					<div
+						id="profiles-dropdown"
+						popover="auto"
+						role="menu"
 						class="dropdown-content absolute right-0 mt-2 w-48 bg-surface-dark border border-border-dim rounded-md shadow-xl overflow-hidden z-50 origin-top-right">
 						<div class="py-1" id="profiles-list">
 							<button
 								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
+								role="menuitem"
 								type="button">
 								<span
+									aria-hidden="true"
 									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">engineering</span>
 								Platform Engineer
 							</button>
 							<button
 								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
+								role="menuitem"
 								type="button">
 								<span
+									aria-hidden="true"
 									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">terminal</span>
 								Developer
 							</button>
 							<button
 								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
+								role="menuitem"
 								type="button">
 								<span
+									aria-hidden="true"
 									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">monitoring</span>
 								Operations (Info Only)
 							</button>
 							<button
 								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item"
+								role="menuitem"
 								type="button">
 								<span
+									aria-hidden="true"
 									class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">admin_panel_settings</span>
 								Admin User
 							</button>
@@ -253,26 +276,30 @@
 						<div class="border-t border-border-dim py-1 bg-black/20">
 							<button id="manage-profiles-btn"
 								class="flex items-center w-full px-4 py-2 text-xs text-left text-gray-500 hover:bg-background-light hover:text-white transition-colors"
+								role="menuitem"
 								type="button">
-								<span class="material-symbols-outlined text-sm mr-2">settings</span>
+								<span aria-hidden="true" class="material-symbols-outlined text-sm mr-2">settings</span>
 								Manage Profiles
 							</button>
 						</div>
 					</div>
 				</div>
 			</div>
-			<form class="p-8 space-y-6 pt-12">
+			<form class="p-8 space-y-6 pt-12" method="POST">
 				<div class="grid grid-cols-2 gap-4">
 					<div class="space-y-2">
 						<label class="block text-xs font-mono text-primary uppercase tracking-wider" for="user_id">User
 							ID</label>
 						<div class="relative">
 							<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-								<span class="material-symbols-outlined text-gray-500 text-lg">fingerprint</span>
+								<span aria-hidden="true" class="material-symbols-outlined text-gray-500 text-lg">fingerprint</span>
 							</span>
 							<input
+								autocapitalize="off"
+								autocomplete="username"
+								autocorrect="off"
 								class="block w-full pl-10 pr-3 py-2.5 bg-input-bg border border-border-dim rounded-md text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-mono text-sm"
-								id="user_id" name="user_id" placeholder="1001" type="text" value="admin_root_01" />
+								id="user_id" name="user_id" placeholder="1001" spellcheck="false" type="text" value="admin_root_01" />
 						</div>
 					</div>
 					<div class="space-y-2">
@@ -280,9 +307,10 @@
 							for="name">Name</label>
 						<div class="relative">
 							<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-								<span class="material-symbols-outlined text-gray-500 text-lg">badge</span>
+								<span aria-hidden="true" class="material-symbols-outlined text-gray-500 text-lg">badge</span>
 							</span>
 							<input
+								autocomplete="name"
 								class="block w-full pl-10 pr-3 py-2.5 bg-input-bg border border-border-dim rounded-md text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-mono text-sm"
 								id="name" name="name" placeholder="John Doe" type="text" value="System Administrator" />
 						</div>
@@ -293,11 +321,14 @@
 						Address</label>
 					<div class="relative">
 						<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-							<span class="material-symbols-outlined text-gray-500 text-lg">alternate_email</span>
+							<span aria-hidden="true" class="material-symbols-outlined text-gray-500 text-lg">alternate_email</span>
 						</span>
 						<input
+							autocapitalize="off"
+							autocomplete="email"
+							autocorrect="off"
 							class="block w-full pl-10 pr-3 py-2.5 bg-input-bg border border-border-dim rounded-md text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-mono text-sm"
-							id="email" name="email" placeholder="developer@company.com" type="email"
+							id="email" name="email" placeholder="developer@company.com" spellcheck="false" type="email"
 							value="admin@possessed-ape.local" />
 					</div>
 				</div>
@@ -310,7 +341,7 @@
 					<textarea
 						class="block w-full p-3 bg-input-bg border border-border-dim rounded-md text-primary font-mono text-sm placeholder-gray-700 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
 						id="roles" name="roles" placeholder='["admin", "editor", "billing_read"]'
-						rows="3">["superuser", "admin", "billing_write", "audit_log_view"]</textarea>
+						rows="3" spellcheck="false">["superuser", "admin", "billing_write", "audit_log_view"]</textarea>
 				</div>
 				<div class="pt-2">
 					<button
@@ -318,6 +349,7 @@
 						type="submit">
 						<span class="absolute left-0 inset-y-0 flex items-center pl-3">
 							<span
+								aria-hidden="true"
 								class="material-symbols-outlined group-hover:animate-pulse text-background-dark">lock_open</span>
 						</span>
 						ASSUME IDENTITY NOW
@@ -328,21 +360,23 @@
 					<summary
 						class="flex items-center justify-between p-3 bg-black/20 cursor-pointer hover:bg-black/40 transition-colors select-none">
 						<div class="flex items-center space-x-2">
-							<span class="material-symbols-outlined text-primary text-sm">code</span>
+							<span aria-hidden="true" class="material-symbols-outlined text-primary text-sm">code</span>
 							<span
 								class="text-xs font-mono text-gray-400 uppercase tracking-wider group-open:text-primary transition-colors">JWT
 								Preview</span>
 						</div>
 						<span
+							aria-hidden="true"
 							class="material-symbols-outlined text-gray-500 transform group-open:rotate-180 transition-transform text-sm group-hover:text-accent">expand_more</span>
 					</summary>
 					<div class="relative bg-input-bg p-4 border-t border-border-dim">
 						<button
+							aria-label="Copy to Clipboard"
 							class="absolute top-2 right-2 p-1.5 text-gray-500 hover:text-accent bg-surface-dark border border-border-dim rounded hover:border-gray-500 transition-all"
 							title="Copy to Clipboard" type="button">
-							<span class="material-symbols-outlined text-xs">content_copy</span>
+							<span aria-hidden="true" class="material-symbols-outlined text-xs">content_copy</span>
 						</button>
-						<pre class="font-mono text-xs overflow-x-auto leading-relaxed"><code class="language-json" id="jwt-preview-code">
+						<pre class="font-mono text-xs overflow-x-auto leading-relaxed" tabindex="0"><code class="language-json" id="jwt-preview-code">
 <span class="text-gray-500">{</span>
   <span class="syntax-key">"sub"</span><span class="syntax-punct">:</span> <span class="syntax-string">"admin_root_01"</span><span class="syntax-punct">,</span>
   <span class="syntax-key">"email"</span><span class="syntax-punct">:</span> <span class="syntax-string">"admin@possessed-ape.local"</span><span class="syntax-punct">,</span>
@@ -383,18 +417,18 @@
 	</main>
 
 	<!-- Save Profile Dialog -->
-	<div id="save-profile-overlay"
-		class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+	<dialog aria-labelledby="save-profile-title" id="save-profile-overlay"
+		class="hidden fixed inset-0 z-50 m-auto bg-transparent p-0 backdrop:bg-black/60 backdrop:backdrop-blur-sm overscroll-contain">
 		<div class="bg-surface-dark border border-border-dim rounded-xl shadow-2xl w-80 overflow-hidden">
 			<div class="px-5 pt-5 pb-4">
-				<h3 class="text-sm font-bold text-white font-display mb-1">Save Profile</h3>
+				<h2 id="save-profile-title" class="text-sm font-bold text-white font-display mb-1">Save Profile</h2>
 				<p class="text-[10px] text-gray-500 font-mono mb-4">Save current form values as a reusable profile</p>
 				<label class="block text-xs font-mono text-gray-400 uppercase tracking-wider mb-2"
 					for="save-profile-name">Profile Name</label>
 				<input id="save-profile-name"
 					class="block w-full px-3 py-2.5 bg-input-bg border border-border-dim rounded-md text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-mono text-sm"
 					placeholder="My Custom Profile" type="text" />
-				<p id="save-profile-error" class="hidden text-[10px] text-accent font-mono mt-2"></p>
+				<p id="save-profile-error" role="alert" class="hidden text-[10px] text-accent font-mono mt-2"></p>
 			</div>
 			<div class="flex border-t border-border-dim">
 				<button id="save-profile-cancel"
@@ -405,27 +439,27 @@
 					type="button">Save</button>
 			</div>
 		</div>
-	</div>
+	</dialog>
 
 	<!-- Manage Profiles Panel -->
-	<div id="manage-profiles-overlay"
-		class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+	<dialog aria-labelledby="manage-profiles-title" id="manage-profiles-overlay"
+		class="hidden fixed inset-0 z-50 m-auto bg-transparent p-0 backdrop:bg-black/60 backdrop:backdrop-blur-sm overscroll-contain">
 		<div
 			class="bg-surface-dark border border-border-dim rounded-xl shadow-2xl w-80 max-h-[60vh] flex flex-col overflow-hidden">
 			<div class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border-dim">
 				<div>
-					<h3 class="text-sm font-bold text-white font-display">Manage Profiles</h3>
+					<h2 id="manage-profiles-title" class="text-sm font-bold text-white font-display">Manage Profiles</h2>
 					<p class="text-[10px] text-gray-500 font-mono mt-0.5">Custom profiles — defaults cannot be removed
 					</p>
 				</div>
-				<button id="manage-profiles-close" class="p-1 text-gray-500 hover:text-white transition-colors"
+				<button aria-label="Close" id="manage-profiles-close" class="p-1 text-gray-500 hover:text-white transition-colors"
 					type="button">
-					<span class="material-symbols-outlined text-lg">close</span>
+					<span aria-hidden="true" class="material-symbols-outlined text-lg">close</span>
 				</button>
 			</div>
 			<div id="manage-profiles-list" class="overflow-y-auto flex-1"></div>
 		</div>
-	</div>
+	</dialog>
 
 	<script>
 		document.querySelector('form').addEventListener('submit', function (e) {
@@ -484,14 +518,23 @@
 				return [...DEFAULT_PROFILES, ...getCustomProfiles()];
 			}
 
+			function escapeHtml(value) {
+				return String(value == null ? '' : value)
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;')
+					.replace(/"/g, '&quot;')
+					.replace(/'/g, '&#39;');
+			}
+
 			function updateJwtPreview(data) {
 				const el = document.getElementById('jwt-preview-code');
 				if (!el) return;
 				el.innerHTML = '<span class="text-gray-500">{</span>\n'
-					+ '  <span class="syntax-key">"sub"</span><span class="syntax-punct">:</span> <span class="syntax-string">"' + (data.user_id || '') + '"</span><span class="syntax-punct">,</span>\n'
-					+ '  <span class="syntax-key">"email"</span><span class="syntax-punct">:</span> <span class="syntax-string">"' + (data.email || '') + '"</span><span class="syntax-punct">,</span>\n'
-					+ '  <span class="syntax-key">"name"</span><span class="syntax-punct">:</span> <span class="syntax-string">"' + (data.name || '') + '"</span><span class="syntax-punct">,</span>\n'
-					+ '  <span class="syntax-key">"roles"</span><span class="syntax-punct">:</span> <span class="syntax-string">' + (data.roles || '[]') + '</span><span class="syntax-punct">,</span>\n'
+					+ '  <span class="syntax-key">"sub"</span><span class="syntax-punct">:</span> <span class="syntax-string">"' + escapeHtml(data.user_id || '') + '"</span><span class="syntax-punct">,</span>\n'
+					+ '  <span class="syntax-key">"email"</span><span class="syntax-punct">:</span> <span class="syntax-string">"' + escapeHtml(data.email || '') + '"</span><span class="syntax-punct">,</span>\n'
+					+ '  <span class="syntax-key">"name"</span><span class="syntax-punct">:</span> <span class="syntax-string">"' + escapeHtml(data.name || '') + '"</span><span class="syntax-punct">,</span>\n'
+					+ '  <span class="syntax-key">"roles"</span><span class="syntax-punct">:</span> <span class="syntax-string">' + escapeHtml(data.roles || '[]') + '</span><span class="syntax-punct">,</span>\n'
 					+ '  <span class="syntax-key">"iss"</span><span class="syntax-punct">:</span> <span class="syntax-string">"https://auth.possessed-ape.dev"</span><span class="syntax-punct">,</span>\n'
 					+ '  <span class="syntax-key">"exp"</span><span class="syntax-punct">:</span> <span class="syntax-number">1739218405</span><span class="syntax-punct">,</span>\n'
 					+ '  <span class="syntax-key">"iat"</span><span class="syntax-punct">:</span> <span class="syntax-number">1739214805</span>\n'
@@ -506,7 +549,13 @@
 				document.getElementById('preset-label').textContent = profile.name;
 				updateJwtPreview(profile.data);
 				localStorage.setItem(LAST_PROFILE_KEY, profile.id);
-				document.activeElement.blur();
+				var dropdown = document.getElementById('profiles-dropdown');
+				if (dropdown && typeof dropdown.hidePopover === 'function' && dropdown.matches(':popover-open')) {
+					dropdown.hidePopover();
+				}
+				if (document.activeElement && typeof document.activeElement.blur === 'function') {
+					document.activeElement.blur();
+				}
 			}
 
 			function captureFormData() {
@@ -521,19 +570,34 @@
 			function renderProfilesDropdown() {
 				const container = document.getElementById('profiles-list');
 				const profiles = getAllProfiles();
-				container.innerHTML = profiles.map(function (p) {
-					return '<button class="profile-btn flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item" data-profile-id="' + p.id + '" type="button">'
-						+ '<span class="material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary">' + (p.icon || 'person') + '</span>'
-						+ p.name
-						+ (p.isDefault ? '' : '<span class="ml-auto text-[10px] text-gray-600 font-mono">custom</span>')
-						+ '</button>';
-				}).join('');
+				container.textContent = '';
+				profiles.forEach(function (p) {
+					var btn = document.createElement('button');
+					btn.className = 'profile-btn flex items-center w-full px-4 py-2 text-xs text-left text-gray-300 hover:bg-background-light hover:text-primary transition-colors group/item';
+					btn.dataset.profileId = p.id;
+					btn.type = 'button';
+					btn.setAttribute('role', 'menuitem');
 
-				container.querySelectorAll('.profile-btn').forEach(function (btn) {
+					var iconSpan = document.createElement('span');
+					iconSpan.className = 'material-symbols-outlined text-sm mr-2 text-gray-500 group-hover/item:text-primary';
+					iconSpan.setAttribute('aria-hidden', 'true');
+					iconSpan.textContent = p.icon || 'person';
+					btn.appendChild(iconSpan);
+
+					btn.appendChild(document.createTextNode(p.name));
+
+					if (!p.isDefault) {
+						var badge = document.createElement('span');
+						badge.className = 'ml-auto text-[10px] text-gray-600 font-mono';
+						badge.textContent = 'custom';
+						btn.appendChild(badge);
+					}
+
 					btn.addEventListener('click', function () {
-						var profile = getAllProfiles().find(function (p) { return p.id === btn.dataset.profileId; });
+						var profile = getAllProfiles().find(function (item) { return item.id === btn.dataset.profileId; });
 						if (profile) loadProfile(profile);
 					});
+					container.appendChild(btn);
 				});
 			}
 
@@ -542,13 +606,20 @@
 				var overlay = document.getElementById('save-profile-overlay');
 				var input = document.getElementById('save-profile-name');
 				overlay.classList.remove('hidden');
+				if (typeof overlay.showModal === 'function' && !overlay.open) {
+					overlay.showModal();
+				}
 				input.value = '';
 				document.getElementById('save-profile-error').classList.add('hidden');
 				setTimeout(function () { input.focus(); }, 50);
 			}
 
 			function hideSaveDialog() {
-				document.getElementById('save-profile-overlay').classList.add('hidden');
+				var overlay = document.getElementById('save-profile-overlay');
+				if (typeof overlay.close === 'function' && overlay.open) {
+					overlay.close();
+				}
+				overlay.classList.add('hidden');
 				document.getElementById('save-profile-error').classList.add('hidden');
 			}
 
@@ -586,45 +657,85 @@
 
 			// Manage profiles panel
 			function showManagePanel() {
-				document.getElementById('manage-profiles-overlay').classList.remove('hidden');
+				var overlay = document.getElementById('manage-profiles-overlay');
+				overlay.classList.remove('hidden');
+				if (typeof overlay.showModal === 'function' && !overlay.open) {
+					overlay.showModal();
+				}
 				renderManageList();
-				document.activeElement.blur();
+				if (document.activeElement && typeof document.activeElement.blur === 'function') {
+					document.activeElement.blur();
+				}
 			}
 
 			function hideManagePanel() {
-				document.getElementById('manage-profiles-overlay').classList.add('hidden');
+				var overlay = document.getElementById('manage-profiles-overlay');
+				if (typeof overlay.close === 'function' && overlay.open) {
+					overlay.close();
+				}
+				overlay.classList.add('hidden');
 			}
 
 			function renderManageList() {
 				var container = document.getElementById('manage-profiles-list');
 				var customs = getCustomProfiles();
+				container.textContent = '';
 
 				if (customs.length === 0) {
 					container.innerHTML = '<div class="text-center py-8">'
-						+ '<span class="material-symbols-outlined text-3xl text-gray-600 mb-2 block">folder_open</span>'
+						+ '<span aria-hidden="true" class="material-symbols-outlined text-3xl text-gray-600 mb-2 block">folder_open</span>'
 						+ '<p class="text-xs text-gray-500 font-mono">No custom profiles yet</p>'
 						+ '<p class="text-[10px] text-gray-600 font-mono mt-1">Use the save button to create one</p>'
 						+ '</div>';
 					return;
 				}
 
-				container.innerHTML = customs.map(function (p) {
-					return '<div class="flex items-center justify-between px-4 py-3 border-b border-border-dim last:border-0 group">'
-						+ '<div class="flex items-center space-x-3">'
-						+ '<span class="material-symbols-outlined text-sm text-gray-500">' + (p.icon || 'person') + '</span>'
-						+ '<div>'
-						+ '<div class="text-xs text-gray-300 font-mono">' + p.name + '</div>'
-						+ '<div class="text-[10px] text-gray-600">' + p.data.email + '</div>'
-						+ '</div></div>'
-						+ '<button class="delete-profile-btn opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:text-accent hover:bg-accent/10 rounded transition-all" data-profile-id="' + p.id + '" type="button" title="Delete profile">'
-						+ '<span class="material-symbols-outlined text-sm">delete</span>'
-						+ '</button></div>';
-				}).join('');
+				customs.forEach(function (p) {
+					var row = document.createElement('div');
+					row.className = 'flex items-center justify-between px-4 py-3 border-b border-border-dim last:border-0 group';
 
-				container.querySelectorAll('.delete-profile-btn').forEach(function (btn) {
-					btn.addEventListener('click', function () {
-						deleteProfile(btn.dataset.profileId);
+					var left = document.createElement('div');
+					left.className = 'flex items-center space-x-3';
+
+					var icon = document.createElement('span');
+					icon.className = 'material-symbols-outlined text-sm text-gray-500';
+					icon.setAttribute('aria-hidden', 'true');
+					icon.textContent = p.icon || 'person';
+
+					var textWrap = document.createElement('div');
+					var nameDiv = document.createElement('div');
+					nameDiv.className = 'text-xs text-gray-300 font-mono';
+					nameDiv.textContent = p.name;
+
+					var emailDiv = document.createElement('div');
+					emailDiv.className = 'text-[10px] text-gray-600';
+					emailDiv.textContent = p.data.email;
+
+					textWrap.appendChild(nameDiv);
+					textWrap.appendChild(emailDiv);
+					left.appendChild(icon);
+					left.appendChild(textWrap);
+
+					var delBtn = document.createElement('button');
+					delBtn.className = 'delete-profile-btn opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 text-gray-500 hover:text-accent hover:bg-accent/10 rounded transition-all';
+					delBtn.dataset.profileId = p.id;
+					delBtn.type = 'button';
+					delBtn.title = 'Delete profile';
+					delBtn.setAttribute('aria-label', 'Delete profile ' + p.name);
+
+					var delIcon = document.createElement('span');
+					delIcon.className = 'material-symbols-outlined text-sm';
+					delIcon.setAttribute('aria-hidden', 'true');
+					delIcon.textContent = 'delete';
+					delBtn.appendChild(delIcon);
+
+					delBtn.addEventListener('click', function () {
+						deleteProfile(delBtn.dataset.profileId);
 					});
+
+					row.appendChild(left);
+					row.appendChild(delBtn);
+					container.appendChild(row);
 				});
 			}
 
@@ -650,6 +761,7 @@
 				document.getElementById('manage-profiles-close').addEventListener('click', hideManagePanel);
 
 				document.getElementById('save-profile-name').addEventListener('keydown', function (e) {
+					if (e.isComposing || e.keyCode === 229) return;
 					if (e.key === 'Enter') saveProfile();
 					if (e.key === 'Escape') hideSaveDialog();
 				});
